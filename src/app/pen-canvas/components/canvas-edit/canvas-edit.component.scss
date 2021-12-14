@@ -1,0 +1,15 @@
+.p-control {
+  display: flex;
+
+  .color-ppicker {
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+
+    .add-file {
+      height: 40px !important;
+    }
+  }
+}

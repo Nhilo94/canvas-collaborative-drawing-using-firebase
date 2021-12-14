@@ -1,0 +1,164 @@
+<!-- Header -->
+<pencil-header-nav></pencil-header-nav>
+
+<!-- Main -->
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <h6
+          class="
+            sidebar-heading
+            d-flex
+            justify-content-between
+            align-items-center
+            px-3
+            mt-4
+            mb-1
+            text-muted
+          "
+        >
+          <span>Saved reports</span>
+          <a class="d-flex align-items-center text-muted" href="#">
+            <span class="fa fa-plus-o-circle"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="fa fa-file"></span>
+              Current month
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="fa fa-file"></span>
+              Last quarter
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="fa fa-file"></span>
+              Social engagement
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="fa fa-file"></span>
+              Year-end sale
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+      <div
+        class="chartjs-size-monitor"
+        style="
+          position: absolute;
+          inset: 0px;
+          overflow: hidden;
+          pointer-events: none;
+          visibility: hidden;
+          z-index: -1;
+        "
+      >
+        <div
+          class="chartjs-size-monitor-expand"
+          style="
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+            visibility: hidden;
+            z-index: -1;
+          "
+        >
+          <div
+            style="
+              position: absolute;
+              width: 1000000px;
+              height: 1000000px;
+              left: 0;
+              top: 0;
+            "
+          ></div>
+        </div>
+        <div
+          class="chartjs-size-monitor-shrink"
+          style="
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+            visibility: hidden;
+            z-index: -1;
+          "
+        >
+          <div
+            style="
+              position: absolute;
+              width: 200%;
+              height: 200%;
+              left: 0;
+              top: 0;
+            "
+          ></div>
+        </div>
+      </div>
+      <div
+        class="
+          d-flex
+          justify-content-between
+          flex-wrap flex-md-nowrap
+          align-items-center
+          pb-2
+          mb-3
+          border-bottom
+        "
+      >
+        <h1 class="h2">Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button class="btn btn-sm btn-outline-secondary">Share</button>
+            <button class="btn btn-sm btn-outline-secondary">Export</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-control">
+        <div>
+          <input
+            class="color-ppicker"
+            (colorPickerChange)="changeBrushColor($event)"
+            [(colorPicker)]="color"
+            [style.background]="color"
+          />
+        </div>
+        <div>
+          <input
+            class="add-file"
+            type="file"
+            (change)="saveAndAddFile($event)"
+          />
+        </div>
+      </div>
+
+      <div>
+        <canvas
+          class="my-4 chartjs-render-monitor"
+          id="p-canvas"
+          #pCanvas
+          style="display: block; width: 100%; height: 100%"
+        ></canvas>
+      </div>
+    </main>
+  </div>
+</div>

@@ -20,16 +20,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'pencil-canvas'`, () => {
+  it(`should have as title 'fanilo-pen-canvas'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('pencil-canvas');
+    expect(app.title).toEqual('fanilo-pen-canvas');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('pencil-canvas app is running!');
+    expect(compiled.querySelector('.content span')?.textContent).toContain('fanilo-pen-canvas app is running!');
   });
 });

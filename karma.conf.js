@@ -25,7 +25,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/pencil-canvas'),
+      dir: require('path').join(__dirname, './coverage/fanilo-pen-canvas'),
       subdir: '.',
       reporters: [
         { type: 'html' },
