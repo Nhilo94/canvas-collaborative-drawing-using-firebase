@@ -2,7 +2,8 @@
   <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Canvas</a>
 
   <ul class="navbar-nav px-3">
-    <li class="nav-item text-nowrap">
+    <li class="nav-item text-nowrap user-action">
+      <span class="mr-3">{{ currentUser?.displayName }}</span>
       <a class="nav-link" (click)="logOut()">Sign out</a>
     </li>
   </ul>

@@ -248,7 +248,10 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       'i'
     );
 
-    if (pattern.test(this.shareToEmail)) {
+    if (
+      pattern.test(this.shareToEmail) &&
+      this.shareToEmail != this.currentUser.email
+    ) {
       if (this.emailSharedCheckSubscr)
         this.emailSharedCheckSubscr.unsubscribe();
 
