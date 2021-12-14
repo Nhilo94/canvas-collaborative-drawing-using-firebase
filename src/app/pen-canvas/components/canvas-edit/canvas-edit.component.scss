@@ -1,5 +1,6 @@
 .p-control {
   display: flex;
+  align-items: center;
 
   .color-ppicker {
     width: 40px;
@@ -12,4 +13,8 @@
       height: 40px !important;
     }
   }
+}
+
+canvas {
+  border: solid 1px gray;
 }

@@ -82,7 +82,15 @@
             [style.background]="color"
           />
         </div>
-        <div>
+        <div class="draw-mode ml-3">
+          <span (click)="drawModeToogle()"  *ngIf="!onDrawMode" >
+            Enable  Drawing mode
+          </span>
+          <span (click)="drawModeToogle()" *ngIf="onDrawMode">
+            Disable  Drawing mode
+          </span>
+        </div>
+        <div class="ml-3">
           <input
             class="add-file"
             type="file"

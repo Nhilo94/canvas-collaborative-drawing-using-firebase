@@ -6,8 +6,14 @@ import {
   ViewChild,
 } from '@angular/core';
 import { fabric } from 'fabric';
-import { Observable, Subject, Subscription, timer } from 'rxjs';
-import { debounce, finalize, tap } from 'rxjs/operators';
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  Subscription,
+  timer,
+} from 'rxjs';
+import { debounce, filter, finalize, tap } from 'rxjs/operators';
 
 import { PFireService } from 'src/app/p-core/services/p-fire.service';
 
@@ -23,24 +29,9 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   private currentCanvas: any;
   private canvasCollectionName: string = 'canvassaved';
 
-  private pathCreatedObs = new Subject<{}>();
+  private pathCreatedObs = new BehaviorSubject<{}>({});
 
   private canvas: fabric.Canvas;
-  public props = {
-    canvasFill: '#ffffff',
-    canvasImage: '',
-    id: null,
-    opacity: null,
-    fill: null,
-    fontSize: null,
-    lineHeight: null,
-    charSpacing: null,
-    fontWeight: null,
-    fontStyle: null,
-    textAlign: null,
-    fontFamily: null,
-    TextDecoration: '',
-  };
 
   public size: any = {
     width: '750',
@@ -48,12 +39,14 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   };
 
   color = '#000';
+
   json: any;
   hasCanvas: boolean;
   subscription: Subscription;
   uploadPercent: Observable<any>;
   downloadURL: Observable<string>;
   fileUpload: boolean;
+  onDrawMode: boolean = true;
 
   constructor(private pFireService: PFireService) {}
 
@@ -68,7 +61,10 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
     this.currentUser = userString ? JSON.parse(userString) : null;
 
     this.subscription = this.pathCreatedObs
-      .pipe(debounce(() => timer(1500)))
+      .pipe(
+        filter((item: any) => item.version),
+        debounce(() => timer(1500))
+      )
       .subscribe((json) => {
         this.saveCanvas(json);
       });
@@ -100,13 +96,24 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       selection: false,
       selectionBorderColor: 'blue',
       isDrawingMode: true,
+      stateful: true,
+    });
+
+    this.canvas.on('after:render', (e) => {
+      // console.log('Pth');
+      // console.log(e);
     });
 
     this.canvas.on('path:created', (e) => {
-      this.pathCreatedObs.next(this.canvas.toJSON());
+      console.log('Path creeated');
+      console.log(e);
+      // this.canvas.add(e)
+      setTimeout(() => {
+        this.pathCreatedObs.next(JSON.parse(JSON.stringify(this.canvas)));
+      }, 500);
     });
 
-   /*  this.canvas.on('object:modified', (e) => {
+    /*  this.canvas.on('object:modified', (e) => {
       this.pathCreatedObs.next(this.canvas.toJSON());
     }); */
 
@@ -116,7 +123,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         this.canvas.sendToBack(selectedObject);
       }
     });
-   /*  this.canvas.on('mouse:down', (e) => {
+    /*  this.canvas.on('mouse:down', (e) => {
       console.log(e);
       const selectedObject = e.target;
       if (selectedObject && selectedObject.type == 'image') {
@@ -136,10 +143,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
     this.canvas.setHeight(this.size.height);
 
     if (init) {
-      this.canvas.loadFromJSON(init, () => {
-        // making sure to render canvas at the end
-        this.canvas.renderAll();
-      });
+      this.canvas.loadFromJSON(init, this.canvas.renderAll.bind(this.canvas));
     }
   }
 
@@ -151,10 +155,12 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         })
         .then((res) => this.saveResult(res));
     } else {
-      this.pFireService.postItemCanvas(this.canvasCollectionName, {
-        userId: this.currentUser.uid,
-        canvas: canvasJson,
-      });
+      this.pFireService
+        .postItemCanvas(this.canvasCollectionName, {
+          userId: this.currentUser.uid,
+          canvas: canvasJson,
+        })
+        .then((res) => this.saveResult(res));
     }
   }
 
@@ -218,5 +224,21 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   selectItemAfterAdded(obj: any) {
     this.canvas.discardActiveObject().renderAll();
     this.canvas.setActiveObject(obj);
+  }
+
+  drawModeToogle() {
+    console.log('Draw mode');
+    console.log(this.canvas.isDrawingMode);
+    this.onDrawMode = !this.onDrawMode;
+    if (this.onDrawMode) {
+      this.canvas.isDrawingMode = true;
+      this.canvas.discardActiveObject().renderAll();
+    } else {
+      this.canvas.discardActiveObject().renderAll();
+      this.canvas.isDrawingMode = false;
+    }
+
+    console.log('Final Draw mode');
+    console.log(this.canvas.isDrawingMode);
   }
 }
