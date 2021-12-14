@@ -6,13 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { fabric } from 'fabric';
-import {
-  BehaviorSubject,
-  Observable,
-  Subject,
-  Subscription,
-  timer,
-} from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, timer } from 'rxjs';
 import { debounce, filter, finalize, tap } from 'rxjs/operators';
 
 import { PFireService } from 'src/app/p-core/services/p-fire.service';
@@ -48,6 +42,8 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   fileUpload: boolean;
   onDrawMode: boolean = true;
 
+  uniqFlagReference: string[] = [];
+
   constructor(private pFireService: PFireService) {}
 
   ngOnDestroy(): void {
@@ -63,7 +59,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
     this.subscription = this.pathCreatedObs
       .pipe(
         filter((item: any) => item.version),
-        debounce(() => timer(1500))
+        debounce(() => timer(1000))
       )
       .subscribe((json) => {
         this.saveCanvas(json);
@@ -75,13 +71,20 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       this.pFireService
         .getItemCanvas(this.canvasCollectionName, this.currentUser.uid)
         .subscribe((res) => {
+          console.log('Log ofofof');
           if (res.length) {
             this.currentCanvas = {
               idKey: res[0].payload.key,
               ...res[0].payload.val(),
             };
             this.hasCanvas = true;
-            this.loadCanvas(res[0].payload.val().canvas);
+            if (
+              this.uniqFlagReference.length == 0 ||
+              (this.uniqFlagReference.length &&
+                !this.uniqFlagReference.includes(this.currentCanvas.uniqFlag))
+            ) {
+              this.loadCanvas(res[0].payload.val().canvas);
+            }
           } else {
             this.loadCanvas();
           }
@@ -90,57 +93,29 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   }
 
   loadCanvas(init: any = null) {
-    // setup front side canvas
-    this.canvas = new fabric.Canvas('p-canvas', {
-      hoverCursor: 'pointer',
-      selection: false,
-      selectionBorderColor: 'blue',
-      isDrawingMode: true,
-      stateful: true,
-    });
+    console.log('Hasw canvas');
+    console.log(this.canvas);
+    if (!this.canvas) {
+      // setup front side canvas
+      this.canvas = new fabric.Canvas('p-canvas', {
+        hoverCursor: 'pointer',
+        selection: false,
+        selectionBorderColor: 'blue',
+        isDrawingMode: true,
+        stateful: true,
+      });
 
-    this.canvas.on('after:render', (e) => {
-      // console.log('Pth');
-      // console.log(e);
-    });
+      this.canvas.on('path:created', () => {
+        this.pathCreatedObs.next(this.canvas.toJSON());
+      });
 
-    this.canvas.on('path:created', (e) => {
-      console.log('Path creeated');
-      console.log(e);
-      // this.canvas.add(e)
-      setTimeout(() => {
-        this.pathCreatedObs.next(JSON.parse(JSON.stringify(this.canvas)));
-      }, 500);
-    });
+      this.canvas.on('object:modified', () => {
+        this.pathCreatedObs.next(this.canvas.toJSON());
+      });
 
-    /*  this.canvas.on('object:modified', (e) => {
-      this.pathCreatedObs.next(this.canvas.toJSON());
-    }); */
-
-    this.canvas.on('mouse:dblclick', (e) => {
-      const selectedObject = e.target;
-      if (selectedObject && selectedObject.type == 'path') {
-        this.canvas.sendToBack(selectedObject);
-      }
-    });
-    /*  this.canvas.on('mouse:down', (e) => {
-      console.log(e);
-      const selectedObject = e.target;
-      if (selectedObject && selectedObject.type == 'image') {
-        this.canvas.isDrawingMode = false;
-        this.canvas.setActiveObject(selectedObject);
-        selectedObject.hasRotatingPoint = true;
-        selectedObject.transparentCorners = false;
-        selectedObject.cornerColor = 'rgba(255, 87, 34, 0.7)';
-      } else {
-        this.canvas.discardActiveObject().renderAll();
-        if (!this.canvas.isDrawingMode) this.canvas.isDrawingMode = true;
-        console.log(selectedObject?.type);
-      }
-    }); */
-
-    this.canvas.setWidth(this.size.width);
-    this.canvas.setHeight(this.size.height);
+      this.canvas.setWidth(this.size.width);
+      this.canvas.setHeight(this.size.height);
+    }
 
     if (init) {
       this.canvas.loadFromJSON(init, this.canvas.renderAll.bind(this.canvas));
@@ -148,10 +123,14 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   }
 
   saveCanvas(canvasJson: any) {
+    const uniqFlag = `${Date.now()}_${this.currentUser.uid}`;
+    this.uniqFlagRef(uniqFlag);
+
     if (this.hasCanvas) {
       this.pFireService
         .updateItemCanvas(this.canvasCollectionName, this.currentCanvas.idKey, {
           canvas: canvasJson,
+          uniqFlag: uniqFlag,
         })
         .then((res) => this.saveResult(res));
     } else {
@@ -159,9 +138,18 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         .postItemCanvas(this.canvasCollectionName, {
           userId: this.currentUser.uid,
           canvas: canvasJson,
+          uniqFlag: uniqFlag,
         })
         .then((res) => this.saveResult(res));
     }
+  }
+
+  uniqFlagRef(ref: string) {
+    if (this.uniqFlagReference.length >= 100) {
+      this.uniqFlagReference.shift();
+    }
+    this.uniqFlagReference.push(ref);
+    console.log(this.uniqFlagReference);
   }
 
   saveResult(result: any) {
@@ -215,6 +203,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         image.scaleToHeight(200);
 
         this.canvas.isDrawingMode = false;
+        this.onDrawMode = false;
         this.canvas.add(image);
         this.selectItemAfterAdded(image);
       });
