@@ -22,6 +22,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   private currentUser: any;
   private currentCanvas: any;
   private canvasCollectionName: string = 'canvassaved';
+  private shareCollectionName: string = 'canvasshared';
 
   private pathCreatedObs = new BehaviorSubject<{}>({});
 
@@ -34,7 +35,6 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
 
   color = '#000';
 
-  json: any;
   hasCanvas: boolean;
   subscription: Subscription;
   uploadPercent: Observable<any>;
@@ -42,7 +42,13 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   fileUpload: boolean;
   onDrawMode: boolean = true;
 
+  shareToEmail: string = '';
+  emailError: boolean = false;
+
   uniqFlagReference: string[] = [];
+  canvasDataSubscr: Subscription;
+  emailSharedCheckSubscr: Subscription;
+  emailErrorMessage: string;
 
   constructor(private pFireService: PFireService) {}
 
@@ -67,29 +73,39 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.canvasSize();
     if (this.currentUser) {
-      this.pFireService
-        .getItemCanvas(this.canvasCollectionName, this.currentUser.uid)
-        .subscribe((res) => {
-          console.log('Log ofofof');
-          if (res.length) {
-            this.currentCanvas = {
-              idKey: res[0].payload.key,
-              ...res[0].payload.val(),
-            };
-            this.hasCanvas = true;
-            if (
-              this.uniqFlagReference.length == 0 ||
-              (this.uniqFlagReference.length &&
-                !this.uniqFlagReference.includes(this.currentCanvas.uniqFlag))
-            ) {
-              this.loadCanvas(res[0].payload.val().canvas);
-            }
-          } else {
-            this.loadCanvas();
-          }
-        });
+      this.preloadDataObs(this.currentUser.uid);
     }
+  }
+
+  canvasSize() {
+    this.size.width = this.htmlCanvas.nativeElement.offsetWidth;
+    this.size.height = this.htmlCanvas.nativeElement.offsetHeight;
+  }
+
+  preloadDataObs(uid: string) {
+    this.canvasDataSubscr = this.pFireService
+      .getItemList(this.canvasCollectionName, 'userId', uid)
+      .subscribe((res) => {
+        console.log('Log ofofof');
+        if (res.length) {
+          this.currentCanvas = {
+            idKey: res[0].payload.key,
+            ...res[0].payload.val(),
+          };
+          this.hasCanvas = true;
+          if (
+            this.uniqFlagReference.length == 0 ||
+            (this.uniqFlagReference.length &&
+              !this.uniqFlagReference.includes(this.currentCanvas.uniqFlag))
+          ) {
+            this.loadCanvas(res[0].payload.val().canvas);
+          }
+        } else {
+          this.loadCanvas();
+        }
+      });
   }
 
   loadCanvas(init: any = null) {
@@ -216,8 +232,6 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   }
 
   drawModeToogle() {
-    console.log('Draw mode');
-    console.log(this.canvas.isDrawingMode);
     this.onDrawMode = !this.onDrawMode;
     if (this.onDrawMode) {
       this.canvas.isDrawingMode = true;
@@ -226,8 +240,58 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       this.canvas.discardActiveObject().renderAll();
       this.canvas.isDrawingMode = false;
     }
+  }
 
-    console.log('Final Draw mode');
-    console.log(this.canvas.isDrawingMode);
+  shareWith() {
+    const pattern = new RegExp(
+      /^[a-z0-9](\.?[a-z0-9]){5,}@g(oogle)?mail\.com$/,
+      'i'
+    );
+
+    if (pattern.test(this.shareToEmail)) {
+      if (this.emailSharedCheckSubscr)
+        this.emailSharedCheckSubscr.unsubscribe();
+
+      this.emailSharedCheckSubscr = this.pFireService
+        .getItemList(
+          this.shareCollectionName,
+          'sharedToEmail',
+          this.shareToEmail
+        )
+        .subscribe((res) => {
+          console.log(res);
+          if (
+            res.length &&
+            res[0].payload.val().canvasKey == this.currentCanvas.idKey
+          ) {
+            this.emailSharedCheckSubscr.unsubscribe();
+            this.emailError = true;
+            this.emailErrorMessage = `Already shared with ${this.shareToEmail}`;
+          } else {
+            this.saveShareData();
+          }
+        });
+    } else {
+      if (this.shareToEmail) {
+        this.emailError = true;
+        this.emailErrorMessage = `Email not valid (Gmail address allowed)`;
+      }
+    }
+  }
+
+  saveShareData() {
+    this.pFireService
+      .postItemCanvas(this.shareCollectionName, {
+        canvasKey: this.currentCanvas.idKey,
+        sharedToEmail: this.shareToEmail,
+        fromUid: this.currentUser.uid,
+        fromUsername: this.currentUser.displayName,
+      })
+      .then(() => {
+        this.emailSharedCheckSubscr.unsubscribe();
+        this.emailError = false;
+        this.emailErrorMessage = '';
+        this.shareToEmail = '';
+      });
   }
 }

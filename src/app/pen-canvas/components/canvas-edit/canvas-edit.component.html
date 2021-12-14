@@ -67,8 +67,20 @@
         <h1 class="h2">Dashboard</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group mr-2">
-            <button class="btn btn-sm btn-outline-secondary">Share</button>
-            <button class="btn btn-sm btn-outline-secondary">Export</button>
+            <span class="mr-2 mt-1 email-error" *ngIf="emailError">{{
+              emailErrorMessage
+            }}</span>
+            <input
+              [(ngModel)]="shareToEmail"
+              type="email"
+              placeholder="Add email address"
+            />
+            <button
+              (click)="shareWith()"
+              class="btn btn-sm btn-outline-secondary"
+            >
+              Share
+            </button>
           </div>
         </div>
       </div>
@@ -83,11 +95,11 @@
           />
         </div>
         <div class="draw-mode ml-3">
-          <span (click)="drawModeToogle()"  *ngIf="!onDrawMode" >
-            Enable  Drawing mode
+          <span (click)="drawModeToogle()" *ngIf="!onDrawMode">
+            Enable Drawing mode
           </span>
           <span (click)="drawModeToogle()" *ngIf="onDrawMode">
-            Disable  Drawing mode
+            Disable Drawing mode
           </span>
         </div>
         <div class="ml-3">
@@ -96,7 +108,7 @@
             type="file"
             (change)="saveAndAddFile($event)"
           />
-          <span *ngIf="fileUpload" >{{uploadPercent | async}}%</span>
+          <span *ngIf="fileUpload">{{ uploadPercent | async }}%</span>
         </div>
       </div>
 

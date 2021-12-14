@@ -11,10 +11,10 @@ export class PFireService {
     private storage: AngularFireStorage
   ) {}
 
-  getItemCanvas(collection: string, userId: string) {
+  getItemList(collection: string, key: string, value: any) {
     return this.db
       .list<any>('/' + collection, (ref: any) =>
-        ref.orderByChild('userId').equalTo(userId)
+        ref.orderByChild(key).equalTo(value)
       )
       .snapshotChanges();
   }
