@@ -53,6 +53,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   subscription: Subscription;
   uploadPercent: Observable<any>;
   downloadURL: Observable<string>;
+  fileUpload: boolean;
 
   constructor(private pFireService: PFireService) {}
 
@@ -94,7 +95,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
 
   loadCanvas(init: any = null) {
     // setup front side canvas
-    this.canvas = new fabric.Canvas(this.htmlCanvas.nativeElement, {
+    this.canvas = new fabric.Canvas('p-canvas', {
       hoverCursor: 'pointer',
       selection: false,
       selectionBorderColor: 'blue',
@@ -105,9 +106,9 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       this.pathCreatedObs.next(this.canvas.toJSON());
     });
 
-    this.canvas.on('object:modified', (e) => {
+   /*  this.canvas.on('object:modified', (e) => {
       this.pathCreatedObs.next(this.canvas.toJSON());
-    });
+    }); */
 
     this.canvas.on('mouse:dblclick', (e) => {
       const selectedObject = e.target;
@@ -115,7 +116,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         this.canvas.sendToBack(selectedObject);
       }
     });
-    this.canvas.on('mouse:down', (e) => {
+   /*  this.canvas.on('mouse:down', (e) => {
       console.log(e);
       const selectedObject = e.target;
       if (selectedObject && selectedObject.type == 'image') {
@@ -129,7 +130,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
         if (!this.canvas.isDrawingMode) this.canvas.isDrawingMode = true;
         console.log(selectedObject?.type);
       }
-    });
+    }); */
 
     this.canvas.setWidth(this.size.width);
     this.canvas.setHeight(this.size.height);
@@ -173,6 +174,8 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
       file
     );
 
+    this.fileUpload = true;
+
     // observe percentage changes
     this.uploadPercent = task.percentageChanges();
     // get notified when the download URL is available
@@ -184,6 +187,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
           this.downloadURL.toPromise().then((eltUrl) => {
             this.addImageOnCanvas(eltUrl);
           });
+          this.fileUpload = false;
         })
       )
       .subscribe();
