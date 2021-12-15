@@ -19,8 +19,8 @@ import { PFireService } from 'src/app/p-core/services/p-fire.service';
 export class CanvasEditComponent implements OnInit, OnDestroy {
   @ViewChild('pCanvas') htmlCanvas: ElementRef<any>;
 
-  private currentUser: any;
-  private currentCanvas: any;
+  currentUser: any;
+  currentCanvas: any;
   private canvasCollectionName: string = 'canvassaved';
   private shareCollectionName: string = 'canvasshared';
 
@@ -49,6 +49,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   canvasDataSubscr: Subscription;
   emailSharedCheckSubscr: Subscription;
   emailErrorMessage: string;
+  sharedToMeSubscr$: Observable<any[]>;
 
   constructor(private pFireService: PFireService) {}
 
@@ -61,6 +62,14 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const userString = localStorage.getItem('user');
     this.currentUser = userString ? JSON.parse(userString) : null;
+
+    if (this.currentUser) {
+      this.sharedToMeSubscr$ = this.pFireService.getItemList(
+        this.shareCollectionName,
+        'sharedToEmail',
+        this.currentUser.email
+      );
+    }
 
     this.subscription = this.pathCreatedObs
       .pipe(
@@ -85,6 +94,7 @@ export class CanvasEditComponent implements OnInit, OnDestroy {
   }
 
   preloadDataObs(uid: string) {
+    if (this.canvasDataSubscr) this.canvasDataSubscr.unsubscribe();
     this.canvasDataSubscr = this.pFireService
       .getItemList(this.canvasCollectionName, 'userId', uid)
       .subscribe((res) => {

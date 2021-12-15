@@ -22,3 +22,31 @@ canvas {
 .email-error {
   color: red;
 }
+
+.draw-mode {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  border: solid 1px gray;
+  padding: 0px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+hr {
+  border: none;
+  border-left: 1px solid #898e91;
+  height: 40px;
+  width: 1px;
+  margin: 0px 0px 0px 25px;
+}
+
+.my-canvas {
+  padding: 14px 0px;
+  cursor: pointer;
+}
+
+.canvas-active {
+  background: #ebede7;
+  font-weight: bold;
+}
