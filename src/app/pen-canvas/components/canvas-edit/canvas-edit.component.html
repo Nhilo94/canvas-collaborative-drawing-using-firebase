@@ -38,8 +38,12 @@
           "
         >
           <span>Shared to me</span>
-          <a class="d-flex align-items-center text-muted" href="#">
-            <span class="fa fa-plus-o-circle"></span>
+          <a class="d-flex align-items-center text-muted">
+            <span>{{
+              (sharedToMeSubscr$ | async)?.length
+                ? (sharedToMeSubscr$ | async)?.length
+                : 0
+            }}</span>
           </a>
         </h6>
         <ul class="nav flex-column mb-2">
